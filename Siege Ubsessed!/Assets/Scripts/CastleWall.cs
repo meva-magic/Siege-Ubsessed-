@@ -3,29 +3,61 @@ using UnityEngine.UI;
 
 public class CastleWall : MonoBehaviour
 {
-    public float maxHealth = 100f;     // Максимальная прочность стенки
-    public float currentHealth;        // Текущая прочность стенки
-    public Image healthBar;            // Связанный индикатор здоровья
+    public float maxHealth = 15f;      // максимальная прочность стенки
+    [SerializeField]
+    private float currentHealth;       // текущее здоровье стенки
+    [SerializeField]
+    private float lerpSpeed = 5f;     // скорость плавного изменения индикатора
 
-    void Start()
+    [SerializeField]
+    private Slider healthSlider;       // индикатор здоровья
+    [SerializeField]
+    private Slider healthSliderDelay;  // задержка индикатора
+
+    [SerializeField]
+    private GameObject breakEffectPrefab; // префаб спецэффекта
+
+    private void Start()
     {
         currentHealth = maxHealth;
-        UpdateHealthBar();             // Устанавливаем начальную шкалу здоровья
+        healthSlider.maxValue = maxHealth;
+        healthSlider.value = currentHealth;
+        healthSliderDelay.value = currentHealth;
     }
 
-    public void TakeDamage(float percentDamage)
+    public void TakeDamage(float damage)
     {
-        currentHealth -= maxHealth * percentDamage / 100f;
-        UpdateHealthBar();
-
-        if(currentHealth <= 0)
+        currentHealth -= damage;      
+        if (currentHealth <= 0)
         {
-            Destroy(gameObject);       // Удаляем стену, если здоровье исчерпано
+            SpawnBreakEffect();        
+            Destroy(healthSlider.gameObject); 
+            Destroy(gameObject);       
         }
     }
 
-    void UpdateHealthBar()
+    private void SpawnBreakEffect()
     {
-        healthBar.fillAmount = currentHealth / maxHealth;
+        if(breakEffectPrefab != null)
+        {
+            Instantiate(breakEffectPrefab, transform.position, Quaternion.identity);
+        }
+    }
+
+    private void Update()
+    {
+        if (healthSlider.value != currentHealth)
+        {
+            healthSlider.value = currentHealth;
+        }
+
+        if (healthSlider.value != healthSliderDelay.value)
+        {
+            healthSliderDelay.value = Mathf.Lerp(
+                healthSliderDelay.value,
+                healthSlider.value,
+                lerpSpeed * Time.deltaTime
+            );
+        }
     }
 }

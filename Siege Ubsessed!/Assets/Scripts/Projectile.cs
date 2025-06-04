@@ -2,30 +2,41 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
-    public float speed = 10f;      // Скорость снаряда
-    public float mass = 10f;       // Масса снаряда (определяет силу повреждения)
-
+    public float speed = 10f;          
+    public float mass;                 
+    public GameObject hitEffectPrefab; 
     void FixedUpdate()
     {
-        transform.Translate(Vector2.right * speed * Time.fixedDeltaTime); // Перемещение снаряда вперёд
+        transform.Translate(Vector2.right * speed * Time.fixedDeltaTime); // движение снаряда
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Castle")) // Проверяем столкновение с объектом, помеченным тегом "Castle"
+        if (other.CompareTag("Castle"))
         {
-            CastleWall castleWall = other.GetComponent<CastleWall>(); // Пробуем получить компонент CastleWall
-            Citadel citadel = other.GetComponent<Citadel>(); // Пробуем получить компонент Citadel
+            CastleWall wall = other.GetComponent<CastleWall>();
+            Citadel citadel = other.GetComponent<Citadel>();
 
-            if (castleWall != null || citadel != null) // Если хотя бы один компонент найден
+            if (wall != null)
             {
-                if (castleWall != null)
-                    castleWall.TakeDamage(mass); // Применяем повреждение стене замка
-                else
-                    citadel.TakeDamage(mass); // Или применяем повреждение цитадели
-
-                Destroy(gameObject); // Самоуничтожение снаряда после попадания
+                wall.TakeDamage(mass);   // наносим урон стенке
+                SpawnHitEffect();        // спавним эффект
             }
+            else if (citadel != null)
+            {
+                citadel.TakeDamage(mass); // наносим урон цитадели
+                SpawnHitEffect();        // спавним эффект
+            }
+
+            Destroy(gameObject);          // уничтожаем снаряд
+        }
+    }
+
+    void SpawnHitEffect()
+    {
+        if(hitEffectPrefab != null)
+        {
+            Instantiate(hitEffectPrefab, transform.position, Quaternion.identity);
         }
     }
 }

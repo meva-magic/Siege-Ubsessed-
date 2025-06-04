@@ -47,8 +47,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa059087bd84cc7408eaaad7ed8f53a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 10
+  speed: 16
   mass: 10
+  hitEffectPrefab: {fileID: 510412827877582106, guid: f1e354896eab4924693709a032812f47, type: 3}
 --- !u!212 &5111080257650476129
 SpriteRenderer:
   m_ObjectHideFlags: 0

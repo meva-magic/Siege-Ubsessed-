@@ -1,33 +1,46 @@
 using UnityEngine;
-using UnityEngine.UI; // добавляем пространство имен для UI элементов
-using TMPro; // оставляем подключение для TextMesh Pro
+using TMPro; 
+using UnityEngine.UI;
 
 public class ShotPrediction : MonoBehaviour
 {
-    public GameObject[] castleWalls;      
-    public GameObject citadel;            
-    public Slider massSlider;             
-    public TMP_Text predictionText;       
+    public GameObject[] castleWalls;    
+    public GameObject citadel;          
+    public Slider massSlider;           
+    public TMP_Text predictionText;     
 
     void Update()
     {
-        float mass = massSlider.value;                    
+        float mass = massSlider.value;                      
         float totalShots = CalculateTotalShots(mass);     
-        predictionText.text = "Минимальное число выстрелов: " + Mathf.Ceil(totalShots).ToString();
+        predictionText.text = "Минимальное число выстрелов: " + Mathf.Max(Mathf.RoundToInt(totalShots), 3).ToString();
     }
 
+    /// <summary>
+    /// Рассчитывает общее количество выстрелов для разрушения замка.
+    /// </summary>
     float CalculateTotalShots(float mass)
     {
-        float shotsForWalls = 0f;
-        foreach (var wall in castleWalls)
+        float totalShots = 0f;
+
+        // Рассчитываем количество выстрелов для каждой стены
+        foreach(var wall in castleWalls)
         {
-            var wallScript = wall.GetComponent<CastleWall>();
-            shotsForWalls += wallScript.maxHealth / mass;   
+            if(wall != null)
+            {
+                var wallScript = wall.GetComponent<CastleWall>();
+                totalShots += Mathf.Ceil(wallScript.maxHealth / mass); // количество выстрелов для стены
+            }
         }
 
-        var citadelScript = citadel.GetComponent<Citadel>();
-        float shotsForCitadel = citadelScript.maxHealth / mass;
+        // Рассчитываем количество выстрелов для цитадели
+        if(citadel != null)
+        {
+            var citadelScript = citadel.GetComponent<Citadel>();
+            totalShots += Mathf.Ceil(citadelScript.maxHealth / mass); // количество выстрелов для цитадели
+        }
 
-        return shotsForWalls + shotsForCitadel;
+        // Проверка: если результат меньше 3, устанавливаем ровно 3 выстрела
+        return Mathf.Max(totalShots, 3);
     }
 }

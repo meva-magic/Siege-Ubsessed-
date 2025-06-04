@@ -3,29 +3,61 @@ using UnityEngine.UI;
 
 public class Citadel : MonoBehaviour
 {
-    public float maxHealth = 150f;    // Максимально возможное здоровье цитадели
-    public float currentHealth;       // Текущее здоровье цитадели
-    public Image healthBar;           // Графическая полоска здоровья
+    public float maxHealth = 50f;      
+    [SerializeField]
+    private float currentHealth;       
+    [SerializeField]
+    private float lerpSpeed = 5f;     
 
-    void Start()
+    [SerializeField]
+    private Slider healthSlider;      
+    [SerializeField]
+    private Slider healthSliderDelay;  
+
+    [SerializeField]
+    private GameObject breakEffectPrefab; 
+
+    private void Start()
     {
         currentHealth = maxHealth;
-        UpdateHealthBar();
+        healthSlider.maxValue = maxHealth;
+        healthSlider.value = currentHealth;
+        healthSliderDelay.value = currentHealth;
     }
 
-    public void TakeDamage(float percentDamage)
+    public void TakeDamage(float damage)
     {
-        currentHealth -= maxHealth * percentDamage / 100f;
-        UpdateHealthBar();
-
-        if(currentHealth <= 0)
+        currentHealth -= damage;      
+        if (currentHealth <= 0)
         {
-            Destroy(gameObject);       // Уничтожаем цитадель, если жизнь закончилась
+            SpawnBreakEffect();        
+            Destroy(healthSlider.gameObject); 
+            Destroy(gameObject);       
         }
     }
 
-    void UpdateHealthBar()
+    private void SpawnBreakEffect()
     {
-        healthBar.fillAmount = currentHealth / maxHealth;
+        if(breakEffectPrefab != null)
+        {
+            Instantiate(breakEffectPrefab, transform.position, Quaternion.identity);
+        }
+    }
+
+    private void Update()
+    {
+        if (healthSlider.value != currentHealth)
+        {
+            healthSlider.value = currentHealth;
+        }
+
+        if (healthSlider.value != healthSliderDelay.value)
+        {
+            healthSliderDelay.value = Mathf.Lerp(
+                healthSliderDelay.value,
+                healthSlider.value,
+                lerpSpeed * Time.deltaTime
+            );
+        }
     }
 }

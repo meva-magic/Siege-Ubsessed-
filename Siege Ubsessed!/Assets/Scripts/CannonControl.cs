@@ -1,41 +1,40 @@
 using UnityEngine;
+using UnityEngine.UI; 
+using UnityEngine.InputSystem; 
 
 public class CannonControl : MonoBehaviour
 {
-    public GameObject projectilePrefab;   // Префаб снаряда
-    public Transform firePosition;       // Точка вылета снаряда
-    public float rotationSpeed = 10f;    // Скорость вращения орудия
-    public float minAngle = -45f;        // Минимальный допустимый угол поворота
-    public float maxAngle = 45f;         // Максимальный допустимый угол поворота
-    public float shotCooldown = 0.5f;   // Время перезарядки между выстрелами
-    private float nextFireTime = 0f;     // Следующий возможный момент выстрела
+    public GameObject projectilePrefab;   
+    public Transform firePosition;       
+    public float rotationSpeed = 10f;   
+    public float shotCooldown = 0.5f;   
+    private float nextFireTime = 0f;     
+    public Slider massSlider;            
 
     void Update()
     {
-        RotateTowardsMouse();            // Следуем за положением курсора
+        RotateTowardsMouse();
 
-        if(Input.GetButtonDown("Fire1") && Time.time > nextFireTime)
+        if (Mouse.current.leftButton.wasPressedThisFrame && Time.time > nextFireTime)
         {
-            FireProjectile();            // Выполняем выстрел
+            FireProjectile((float)massSlider.value); // передача массы снаряда
             nextFireTime = Time.time + shotCooldown;
         }
     }
 
     void RotateTowardsMouse()
     {
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 direction = new Vector2(mousePos.x - transform.position.x,
-                                        mousePos.y - transform.position.y);
-
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        angle = Mathf.Clamp(angle, minAngle, maxAngle);              // Ограничиваем угол поворота
-
-        transform.rotation = Quaternion.Euler(0, 0, angle);
+        Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        Vector2 direction = new Vector2(mouseWorldPosition.x - transform.position.x, mouseWorldPosition.y - transform.position.y);
+        float targetRotationZ = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        targetRotationZ = Mathf.Clamp(targetRotationZ, 45f, 135f);
+        transform.eulerAngles = Vector3.Lerp(transform.eulerAngles, new Vector3(0, 0, targetRotationZ), rotationSpeed * Time.deltaTime);
     }
 
-    void FireProjectile()
+    void FireProjectile(float mass)
     {
         GameObject proj = Instantiate(projectilePrefab, firePosition.position, firePosition.rotation);
-        proj.GetComponent<Projectile>().speed = 10f;                // Можно задать любую постоянную скорость
+        proj.GetComponent<Projectile>().mass = mass; // установка массы снаряда
+        proj.GetComponent<Rigidbody2D>().linearVelocity = transform.up.normalized * 10f; // скорость снаряда
     }
 }
